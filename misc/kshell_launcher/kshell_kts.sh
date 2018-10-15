@@ -6,30 +6,27 @@ if [ $# -ne 1 ]; then
     exit 0
 fi
 
-tmpfile=$(mktemp).kts
+argScript=$1
 
-#echo '@file:Include("https://git.io/fAJ5h")' >> $tmpfile
+tmpfile="$(mktemp $(dirname "$argScript")/.temp.XXXXXX)"
+mv "$tmpfile" "$tmpfile.kts"
+tmpfile="$tmpfile.kts"
+
+trap "rm $tmpfile" EXIT
+
 echo '
 @file:DependsOn("org.apache.hadoop:hadoop-common:2.7.0")
 
 // should be now on maven central
 @file:DependsOn("com.github.khud:kshell-repl-api:0.2.4-1.2.60")
 
-@file:DependsOn("sparklin:jline3-shaded:0.2-SNAPSHOT")
+@file:DependsOn("sparklin:jline3-shaded:0.2.5")
 
-//@file:DependsOn("sparklin:kshell:0.2-SNAPSHOT")
 @file:DependsOn("sparklin:kshell:0.2.5")
 
 ' > $tmpfile
-echo '' >> $tmpfile
 
-argScript=$1
-#argScript=krangl_example.kts
-
-cat $argScript | grep '@file' >> $tmpfile
-
-#cat $tmpfile
-
+cat $argScript | grep '@file:[DependsOn MavenRepository]' >> $tmpfile
 
 echo "Preparing interactive session by resolving script dependencies..."
 
